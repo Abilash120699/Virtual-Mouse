@@ -3,6 +3,7 @@ import numpy as np
 import HandTrackingModule as htm
 import time
 import autopy
+import pyautogui
 
 ##########################
 wCam, hCam = 640, 480
@@ -22,24 +23,24 @@ detector = htm.handDetector(maxHands=1)
 wScr, hScr = autopy.screen.size()
 #print(wScr,hScr)
 while True:
-    
+    #Find Hands
     success, img = cap.read()
     img = detector.findHands(img)
     lmList, bbox = detector.findPosition(img)
 
-    
+    #Find position
     if len(lmList) != 0:
         x1, y1 = lmList[8][1:]
         x2, y2 = lmList[12][1:]
 
         #print(x1, y1, x2, y2)
 
-        
+        #which finger is up
         fingers = detector.fingersUp()
         #print(fingers)
         cv2.rectangle(img, (frameR, frameR), (wCam - frameR, hCam - frameR),
                       (255, 0, 255), 2)
-        
+        #Mouse in Moving mode
         if fingers[1] == 1 and fingers[2] == 0:
             
 
@@ -52,7 +53,7 @@ while True:
             autopy.mouse.move(wScr - clocX, clocY)
             cv2.circle(img, (x1, y1), 10, (255, 0, 255), cv2.FILLED)
             plocX, plocY = clocX, clocY
-    
+        #Mouse in click mode
         if fingers[1] == 1 and fingers[2] == 1:
             
             length, img, lineInfo = detector.findDistance(8, 12, img)
@@ -61,7 +62,18 @@ while True:
             if length < 40:
                 cv2.circle(img, (lineInfo[4], lineInfo[5]),10, (0, 255, 0), cv2.FILLED)
                 autopy.mouse.click()
-    
+         #Scroll       
+         if fingers[0] == 1 and fingers[1] = 1:
+            length, img, lineInfo = detector.findDistance(8, 12, img)
+            #scroll Up
+            if length > 120:
+                cv2.circle(img, (lineInfo[4], lineInfo[5]),10, (0, 255, 0), cv2.FILLED)
+                pyautogui.scroll(300)
+            #Scroll Down
+            if length < 70:
+                cv2.circle(img, (lineInfo[4], lineInfo[5]),10, (255, 0, 0), cv2.FILLED)
+                pyautogui.scroll(-300)
+    #Find frame per second
     cTime = time.time()
     fps = 1 / (cTime - pTime)
     pTime = cTime
